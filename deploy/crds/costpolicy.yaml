@@ -1,0 +1,38 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: costpolicies.frugalk8s.io
+spec:
+  group: frugalk8s.io
+  names:
+    kind: CostPolicy
+    plural: costpolicies
+    singular: costpolicy
+    shortNames:
+      - cp
+  scope: Cluster # Cluster-wide
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["maxAge", "action", "targetNamespaces"]
+              properties:
+                maxAge:
+                  type: string
+                  description: "Maximum allowed age for a LoadBalancer (e.g., '24h', '7d')"
+                  pattern: '^[0-9]+[hd]$'
+                action:
+                  type: string
+                  description: "What to do when policy is violated"
+                  enum: ["notify", "delete"]
+                targetNamespaces:
+                  type: array
+                  description: "List of namespaces this policy applies to"
+                  items:
+                    type: string

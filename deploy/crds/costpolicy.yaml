@@ -21,8 +21,12 @@ spec:
           properties:
             spec:
               type: object
-              required: ["maxAge", "action", "targetNamespaces"]
+              required: ["managedResources", maxAge", "action", "targetNamespaces"]
               properties:
+                managedResources:
+                  type: array
+                  items:
+                    type: string
                 maxAge:
                   type: string
                   description: "Maximum allowed age for a LoadBalancer (e.g., '24h', '7d')"

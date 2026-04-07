@@ -1,2 +1,9 @@
 kopf
 kubernetes
+pytest
+boto3
+requests
+black
+flake8
+pylint
+PyYAML

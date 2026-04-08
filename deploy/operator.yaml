@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubecoster
+  namespace: kubecoster
+  labels:
+    app: kubecoster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubecoster
+  template:
+    metadata:
+      labels:
+        app: kubecoster
+    spec:
+      serviceAccountName: kubecoster
+
+      # Only one replica makes sense for a kopf operator (standalone mode)
+      # If you ever want HA, switch standalone=False and use leases.
+      terminationGracePeriodSeconds: 30
+
+      containers:
+        - name: kubecoster
+          # Replace with your actual image; e.g. ghcr.io/your-org/kubecoster:0.1.0
+          image: kubecoster:latest
+          imagePullPolicy: IfNotPresent
+
+          command: ["kopf", "run", "cmd/main.py", "--verbose", "--standalone"]
+
+          env:
+            # Tells the Python kubernetes-client to use the in-cluster service account
+            - name: KUBERNETES_IN_CLUSTER
+              value: "true"
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+          # Liveness: kopf keeps a heartbeat file; fall back to a simple process check
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "kopf"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 3
+
+      # Prevent the operator from being scheduled on nodes tainted for workloads
+      tolerations: []
+      affinity: {}

@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubecoster
+
+---
+# ServiceAccount that the operator pod runs as
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubecoster
+  namespace: kubecoster
+
+---
+# ClusterRole – all permissions the operator needs across the whole cluster
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubecoster
+rules:
+  # Watch and patch/delete LoadBalancer Services in any namespace
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "patch", "delete"]
+
+  # Watch and delete orphaned PersistentVolumes (cluster-scoped)
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "delete"]
+
+  # Read CostPolicy CRDs (cluster-scoped)
+  - apiGroups: ["frugalk8s.io"]
+    resources: ["costpolicies"]
+    verbs: ["get", "list", "watch"]
+
+  # Kopf uses Events to emit operator notifications
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+
+  # Kopf stores per-object progress in annotations and may read pods/namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+
+  # Kopf peering/leader-election via ConfigMaps (even in standalone mode,
+  # kopf writes its own operator state to a ConfigMap)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+# Bind the ClusterRole to the ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubecoster
+subjects:
+  - kind: ServiceAccount
+    name: kubecoster
+    namespace: kubecoster
+roleRef:
+  kind: ClusterRole
+  name: kubecoster
+  apiGroup: rbac.authorization.k8s.io

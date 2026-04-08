@@ -21,7 +21,7 @@ spec:
           properties:
             spec:
               type: object
-              required: ["managedResources", maxAge", "action", "targetNamespaces"]
+              required: ["managedResources", "maxAge", "action", "targetNamespaces"]
               properties:
                 managedResources:
                   type: array
